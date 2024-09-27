@@ -17,6 +17,16 @@ void disable_interrupts()
     set_interrupt_state(0x0);
 }
 
+uint8_t get_status_reg()
+{
+    return *(volatile uint8_t*)SREG_REG;
+}
+
+void set_status_reg(const uint8_t value)
+{
+    *(volatile uint8_t*)SREG_REG = value;
+}
+
 static void set_interrupt_state(const uint8_t state)
 {
         // Read the current value of the register
