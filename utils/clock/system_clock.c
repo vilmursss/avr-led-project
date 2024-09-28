@@ -1,6 +1,7 @@
 #include "system_clock.h"
 #include "system_clock_defs.h"
 
+#include <log/logger.h>
 #include <status/reg_status.h>
 #include <writer/reg_writer.h>
 
