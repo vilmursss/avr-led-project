@@ -5,8 +5,6 @@
 #include <status/reg_status.h>
 #include <writer/reg_writer.h>
 
-#include <stdio.h>
-
 // Define the clock frequency if not already defined
 #ifndef F_CPU
     #define F_CPU 16000000UL // 16 MHz

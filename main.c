@@ -1,7 +1,6 @@
 #include <log/logger.h>
 
 #include <util/delay.h>
-#include <stdio.h>
 
 // Check if serial debug baud rate is given through the CFLAGS
 #ifndef SERIAL_BAUD

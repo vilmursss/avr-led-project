@@ -4,8 +4,6 @@
 #include <log/logger.h>
 #include <writer/reg_writer.h>
 
-#include <stdio.h>
-
 // Registers
 volatile uint8_t* const SREG_REG = (volatile uint8_t*)0x5F; // AVR Status Register
 
