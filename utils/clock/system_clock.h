@@ -3,8 +3,7 @@
 
 #include <stdint.h>
 
-// Perform required initialization options so timestamp can be retrieved
-// If this is not called then timer_get_current_ts() returns only 00:00:00
+// Initializes vector 11 timer interrupts so the uptime counter starts ticking.
 void system_clock_init();
 
 // Retrieve uptime since the system start in seconds
