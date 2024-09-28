@@ -59,7 +59,7 @@ static void set_ctc_mode_on()
     const WriteStatus ret = reg_write_bits(TCCR1B_REG, &tccr1bBits, REG_SIZE_8);
         if (ret != WRITE_OK)
     {
-        printf("ERROR(%d): Failed to write TCCR1Bits (Set CTC mode) to TCCR1B_REG", ret);
+        log_warning("Failed to write TCCR1Bits (Set CTC mode) to TCCR1B_REG (Error Code: %d)", ret);
     }
 }
 
@@ -72,7 +72,7 @@ static void set_clock_select_bits()
     const WriteStatus ret = reg_write_bits(TCCR1B_REG, &tccr1bBits, REG_SIZE_8);
         if (ret != WRITE_OK)
     {
-        printf("ERROR(%d): Failed to write TCCR1Bits (Set clock select) to TCCR1B_REG", ret);
+        log_warning("Failed to write TCCR1Bits (Set clock select) to TCCR1B_REG (Error Code: %d)", ret);
     }
 }
 
@@ -89,7 +89,7 @@ static void set_ocr1a_compare_value()
     const WriteStatus ret = reg_write_bits(ORC1A_REG, &compareMatchVal, REG_SIZE_16);
     if (ret != WRITE_OK)
     {
-        printf("ERROR(%d): Failed to write CompareMatchVAl to ORC1A_REG", ret);
+        log_warning("Failed to write CompareMatchVAl to ORC1A_REG (Error Code: %d)", ret);
     }
 
     // Restore status register
@@ -105,6 +105,6 @@ static void enable_compare_a_match_interrupt()
     const WriteStatus ret = reg_write_bits(TIMSK1_REG, &timsk1, REG_SIZE_8);
     if (ret != WRITE_OK)
     {
-        printf("ERROR(%d): Failed to write TIMSK1Bits to TIMSK1_REG", ret);
+        log_warning("Failed to write TIMSK1Bits to TIMSK1_REG (Error Code: %d)", ret);
     }
 }

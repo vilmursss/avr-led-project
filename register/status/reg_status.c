@@ -1,6 +1,7 @@
 #include "reg_status.h"
 #include "reg_status_defs.h"
 
+#include <log/logger.h>
 #include <writer/reg_writer.h>
 
 #include <stdio.h>
@@ -40,6 +41,6 @@ static void set_global_interrupts(const uint8_t state)
     const WriteStatus ret = reg_write_bits(SREG_REG, &sreg, REG_SIZE_8);
     if (ret!= WRITE_OK)
     {
-        printf("ERROR(%d): Failed to write SREGBits to SREG_REG", ret);
+        log_warning("Failed to write SREGBits to SREG_REG (Error Code: %d)", ret);
     }
 }
