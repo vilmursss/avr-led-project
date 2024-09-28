@@ -4,8 +4,6 @@
 #include <interrupt/reg_interrupt.h>
 #include <register/reg_write.h>
 
-#include <avr/interrupt.h>
-
 #include <stdio.h>
 
 // Define the clock frequency if not already defined
@@ -34,7 +32,9 @@ static void set_clock_select_bits();
 static void set_ocr1a_compare_value();
 static void enable_compare_a_match_interrupt();
 
-ISR(TIMER1_COMPA_vect)
+// ISR for Timer/Counter1 Compare Match A (Vector 11)
+void __vector_11(void) __attribute__ ((signal, used, externally_visible));
+void __vector_11(void)
 {
     seconds++;
     if (seconds >= 60)
