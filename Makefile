@@ -43,6 +43,6 @@ upload: $(TARGET).hex
 
 # Clean up build files
 clean:
-	rm -f $(OBJ_FILES) $(TARGET).elf $(TARGET).hex
+	rm -r $(BUILD_DIR)
 
 .PHONY: all upload clean print-vars
