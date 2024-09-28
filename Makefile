@@ -1,12 +1,13 @@
 # Directories
 SRC_DIR := .
 BUILD_DIR := $(SRC_DIR)/build
-INC_DIRS := $(SRC_DIR)/utils
+INC_DIRS := $(SRC_DIR)/utils $(SRC_DIR)/register 
 
 # Source and Object Files
-SRC_FILES := $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SRC_DIR)/utils/**/*.c)
+SRC_FILES := $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SRC_DIR)/utils/**/*.c) $(wildcard $(SRC_DIR)/register/**/*.c)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRC_FILES))
 OBJ_FILES := $(patsubst $(SRC_DIR)/utils/%.c, $(BUILD_DIR)/%.o, $(OBJ_FILES))
+OBJ_FILES := $(patsubst $(SRC_DIR)/register/%.c, $(BUILD_DIR)/%.o, $(OBJ_FILES))
 
 # Compiler and Flags
 CC := avr-gcc

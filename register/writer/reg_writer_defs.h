@@ -1,5 +1,5 @@
-#ifndef UTILS_REGISTER_WRITE_DEFS_H
-#define UTILS_REGISTER_WRITE_DEFS_H
+#ifndef REGISTER_REG_WRITER_DEFS_H
+#define REGISTER_REG_WRITER_DEFS_H
 
 #include <stdint.h>
 
@@ -19,4 +19,4 @@ typedef enum {
     WRITE_UNKNOWN_REG_SIZE = -3,
 } WriteStatus;
 
-#endif // UTILS_REGISTER_WRITE_DEFS_H
+#endif // REGISTER_REG_WRITER_DEFS_H

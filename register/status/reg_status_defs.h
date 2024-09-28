@@ -1,5 +1,5 @@
-#ifndef UTILS_REG_INTERRUPT_DEFS_H
-#define UTILS_REG_INTERRUPT_DEFS_H
+#ifndef REGISTER_REG_STATUS_DEFS_H
+#define REGISTER_REG_STATUS_DEFS_H
 
 #include <stdint.h>
 
@@ -14,4 +14,4 @@ typedef struct {
     uint8_t globalInterruptEnable : 1; // Bit 7: Enable global interrupts
 } SREGBits;
 
-#endif // UTILS_INTERRUPT_DEFS_H
+#endif // REGISTER_REG_STATUS_DEFS_H

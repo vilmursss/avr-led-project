@@ -1,7 +1,7 @@
-#include "reg_interrupt.h"
-#include "reg_interrupt_defs.h"
+#include "reg_status.h"
+#include "reg_status_defs.h"
 
-#include <register/reg_write.h>
+#include <writer/reg_writer.h>
 
 #include <stdio.h>
 
@@ -9,29 +9,29 @@
 volatile uint8_t* const SREG_REG = (volatile uint8_t*)0x5F; // AVR Status Register
 
 // Local functions
-static void set_interrupt_state(uint8_t state);
+static void set_global_interrupts(uint8_t state);
 
-void enable_interrupts()
+void reg_status_enable_interrupts()
 {
-    set_interrupt_state(1);
+    set_global_interrupts(1);
 }
 
-void disable_interrupts()
+void reg_status_disable_interrupts()
 {
-    set_interrupt_state(0);
+    set_global_interrupts(0);
 }
 
-uint8_t get_status_reg()
+uint8_t reg_status_get()
 {
     return *(volatile uint8_t*)SREG_REG;
 }
 
-void set_status_reg(const uint8_t value)
+void reg_status_set(const uint8_t value)
 {
     *(volatile uint8_t*)SREG_REG = value;
 }
 
-static void set_interrupt_state(const uint8_t state)
+static void set_global_interrupts(const uint8_t state)
 {
     // Change global interrupts state
     SREGBits sreg = {0};

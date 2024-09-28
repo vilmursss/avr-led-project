@@ -1,8 +1,8 @@
 #include "system_clock.h"
 #include "system_clock_defs.h"
 
-#include <interrupt/reg_interrupt.h>
-#include <register/reg_write.h>
+#include <status/reg_status.h>
+#include <writer/reg_writer.h>
 
 #include <stdio.h>
 
@@ -62,7 +62,7 @@ void system_clock_init()
     set_clock_select_bits();
     set_ocr1a_compare_value();
     enable_compare_a_match_interrupt();
-    enable_interrupts();
+    reg_status_enable_interrupts();
 }
 
 const char* system_clock_get_ts()
@@ -106,8 +106,8 @@ static void set_ocr1a_compare_value()
 
     // Disable interrupts to ensure atomic access if enabled as we are performing
     // two writes to 16-bit register
-    uint8_t sreg = get_status_reg();
-    disable_interrupts();
+    uint8_t sreg = reg_status_get();
+   reg_status_disable_interrupts();
 
     const WriteStatus ret = reg_write_bits(ORC1A_REG, &compareMatchVal, REG_SIZE_16);
     if (ret != WRITE_OK)
@@ -116,7 +116,7 @@ static void set_ocr1a_compare_value()
     }
 
     // Restore status register
-    set_status_reg(sreg);
+    reg_status_set(sreg);
 }
 
 static void enable_compare_a_match_interrupt()
