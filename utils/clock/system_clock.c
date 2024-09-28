@@ -12,7 +12,6 @@
 #endif
 
 // Constants
-const char* TS_FORMAT = "%02d:%02d:%02d";
 const uint8_t DESIRED_FREQUENCY = 1; // 1 Hz
 const uint32_t PRESCALER = 1024;
 
@@ -22,9 +21,7 @@ volatile uint8_t* const TCCR1B_REG = (volatile uint8_t*)0x81; // Timer/Counter1 
 volatile uint16_t* const ORC1A_REG = (volatile uint16_t*)0x88; //  Timer/Counter1 - Combinced output compare register A for low & high byte
 
 // Local variables
-static volatile uint8_t hours = 0;
-static volatile uint8_t minutes = 0;
-static volatile uint8_t seconds = 0;
+static volatile uint64_t system_uptime = 0;
 
 // Local functions
 static void set_ctc_mode_on();
@@ -36,24 +33,7 @@ static void enable_compare_a_match_interrupt();
 void __vector_11(void) __attribute__ ((signal, used, externally_visible));
 void __vector_11(void)
 {
-    seconds++;
-    if (seconds >= 60)
-    {
-        seconds = 0;
-        minutes++;
-    }
-    
-    if (minutes >= 60)
-    {
-        minutes = 0;
-        hours++;
-    }
-    
-    if (hours >= 24)
-    {
-        hours = 0;
-        printf("Reseting timer... Device has been up and running over 24h\n");
-    }
+    system_uptime++;
 }
 
 void system_clock_init()
@@ -65,12 +45,9 @@ void system_clock_init()
     reg_status_enable_interrupts();
 }
 
-const char* system_clock_get_ts()
+uint64_t system_clock_get_uptime()
 {
-    static char time_str[10];
-    snprintf(time_str, sizeof(time_str), TS_FORMAT, hours, minutes, seconds);
-    
-    return time_str;
+    return system_uptime;
 }
 
 static void set_ctc_mode_on()

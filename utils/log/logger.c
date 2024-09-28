@@ -6,12 +6,14 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+// Constants
+const char* TS_FORMAT = "%u days, %02u:%02u:%02u";
+
 // Local functions
 static const char* current_timestamp();
 static const char* log_level_to_str(const LogLevel level);
 static void log_message(const LogLevel level, const char* msg, ...);
 
-// ERROR level log print
 void log_error(const char* msg, ...)
 {
     va_list args;
@@ -20,7 +22,6 @@ void log_error(const char* msg, ...)
     va_end(args);
 }
 
-// WARNING level log print
 void log_warning(const char* msg, ...)
 {
     va_list args;
@@ -29,7 +30,6 @@ void log_warning(const char* msg, ...)
     va_end(args);
 }
 
-// INFO level log print
 void log_info(const char* msg, ...)
 {
     va_list args;
@@ -38,7 +38,6 @@ void log_info(const char* msg, ...)
     va_end(args);
 }
 
-// DEBUG level log print
 void log_debug(const char* msg, ...)
 {
     va_list args;
@@ -49,7 +48,19 @@ void log_debug(const char* msg, ...)
 
 static const char* current_timestamp()
 {
-    return "00:00:00";
+    // Create timestamp
+    uint64_t uptime_in_secs = system_clock_get_uptime();
+    const uint16_t days = uptime_in_secs / 86400;
+    uptime_in_secs %= 86400;
+    const uint16_t hours = uptime_in_secs / 3600;
+    uptime_in_secs %= 3600;
+    const uint16_t minutes = uptime_in_secs / 60;
+    uptime_in_secs %= 60;
+
+    static char time_str[50];
+    snprintf(time_str, sizeof(time_str), TS_FORMAT, days, hours, minutes, uptime_in_secs);
+
+    return time_str;
 }
 
 static const char* log_level_to_str(const LogLevel level)
