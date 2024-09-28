@@ -1,3 +1,5 @@
+#include <log/logger.h>
+
 #include <util/delay.h>
 #include <stdio.h>
 
@@ -6,11 +8,12 @@
     #define SERIAL_BAUD 9600
 #endif
 
-int main(void) {
+int main(void)
+{
     while (1)
     {
         // Send debug message using printf
-        printf("Test print\n");
+        log_debug("Test print\n");
         _delay_ms(1000);
     }
 
