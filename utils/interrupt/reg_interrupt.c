@@ -1,6 +1,10 @@
 #include "reg_interrupt.h"
 #include "reg_interrupt_defs.h"
 
+#include <register/reg_write.h>
+
+#include <stdio.h>
+
 // Registers
 volatile uint8_t* const SREG_REG = (volatile uint8_t*)0x5F; // AVR Status Register
 
@@ -9,12 +13,12 @@ static void set_interrupt_state(uint8_t state);
 
 void enable_interrupts()
 {
-    set_interrupt_state(0x1);
+    set_interrupt_state(1);
 }
 
 void disable_interrupts()
 {
-    set_interrupt_state(0x0);
+    set_interrupt_state(0);
 }
 
 uint8_t get_status_reg()
@@ -29,15 +33,13 @@ void set_status_reg(const uint8_t value)
 
 static void set_interrupt_state(const uint8_t state)
 {
-        // Read the current value of the register
-    uint8_t currentValue = *(volatile uint8_t*)SREG_REG;
+    // Change global interrupts state
+    SREGBits sreg = {0};
+    sreg.globalInterruptEnable = state;
 
-    // Create a bit field structure and assign the current value to it
-    SREGBits* sregBits = (SREGBits*)&currentValue;
-
-    // Enable global interrupts
-    sregBits->globalInterruptEnable = state;
-
-    // Write the modified value back to the register
-    *(volatile uint8_t*)SREG_REG = currentValue;
+    const WriteStatus ret = reg_write_bits(SREG_REG, &sreg, REG_SIZE_8);
+    if (ret!= WRITE_OK)
+    {
+        printf("ERROR(%d): Failed to write SREGBits to SREG_REG", ret);
+    }
 }

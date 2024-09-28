@@ -2,6 +2,7 @@
 #include "system_clock_defs.h"
 
 #include <interrupt/reg_interrupt.h>
+#include <register/reg_write.h>
 
 #include <avr/interrupt.h>
 
@@ -74,44 +75,45 @@ const char* system_clock_get_ts()
 
 static void set_ctc_mode_on()
 {
-    // Read the current value of the register
-    uint8_t currentValue = *(volatile uint8_t*)TCCR1B_REG;
+    // Set CTC mode
+    TCCR1Bits tccr1bBits = {0};
+    tccr1bBits.waveformGenMode = 0x1;;
 
-    // Create a bit field structure and assign the current value to it
-    TCCR1Bits* tccr1bBits = (TCCR1Bits*)&currentValue;
-
-    // Set the waveform generation mode to 0b01 (CTC mode)
-    tccr1bBits->waveformGenMode = 0x1;
-
-    // Write the modified value back to the register
-    *(volatile uint8_t*)TCCR1B_REG = currentValue;
+    const WriteStatus ret = reg_write_bits(TCCR1B_REG, &tccr1bBits, REG_SIZE_8);
+        if (ret != WRITE_OK)
+    {
+        printf("ERROR(%d): Failed to write TCCR1Bits (Set CTC mode) to TCCR1B_REG", ret);
+    }
 }
 
 static void set_clock_select_bits()
 {
-    // Read the current value of the register
-    uint8_t currentValue = *(volatile uint8_t*)TCCR1B_REG;
+    // Select desired clock for this PRESCALER
+    TCCR1Bits tccr1bBits = {0};
+    tccr1bBits.clockSelect = 0x5;
 
-    // Create a bit field structure and assign the current value to it
-    TCCR1Bits* tccr1bBits = (TCCR1Bits*)&currentValue;
-
-    // Set the prescaler to 1024 by writing 0x5 (101) to the clock select bits
-    tccr1bBits->clockSelect = 0x5;
-
-    // Write the modified value back to the register
-    *(volatile uint8_t*)TCCR1B_REG = currentValue;
+    const WriteStatus ret = reg_write_bits(TCCR1B_REG, &tccr1bBits, REG_SIZE_8);
+        if (ret != WRITE_OK)
+    {
+        printf("ERROR(%d): Failed to write TCCR1Bits (Set clock select) to TCCR1B_REG", ret);
+    }
 }
 
 static void set_ocr1a_compare_value()
 {
-    const uint16_t compareMatchVal = F_CPU / (PRESCALER * DESIRED_FREQUENCY) - 1;
+    // Calculate compare match value
+    uint16_t compareMatchVal = F_CPU / (PRESCALER * DESIRED_FREQUENCY) - 1;
 
     // Disable interrupts to ensure atomic access if enabled as we are performing
     // two writes to 16-bit register
     uint8_t sreg = get_status_reg();
     disable_interrupts();
 
-    *(volatile uint16_t*)ORC1A_REG = compareMatchVal;
+    const WriteStatus ret = reg_write_bits(ORC1A_REG, &compareMatchVal, REG_SIZE_16);
+    if (ret != WRITE_OK)
+    {
+        printf("ERROR(%d): Failed to write CompareMatchVAl to ORC1A_REG", ret);
+    }
 
     // Restore status register
     set_status_reg(sreg);
@@ -119,15 +121,13 @@ static void set_ocr1a_compare_value()
 
 static void enable_compare_a_match_interrupt()
 {
-    // Read the current value of the register
-    uint8_t currentValue = *(volatile uint8_t*)TIMSK1_REG;
+     // Enable compare match
+    TIMSK1Bits timsk1 = {0};
+    timsk1.compareAMatchEnable = 0x1;
 
-    // Create a bit field structure and assign the current value to it
-    TIMSK1Bits* timsk1Bits = (TIMSK1Bits*)&currentValue;
-
-    // Enable compare interrupt of output A compare
-    timsk1Bits->compareAMatchEnable = 0x1;
-
-    // Write the modified value back to the register
-    *(volatile uint8_t*)TIMSK1_REG = currentValue;
+    const WriteStatus ret = reg_write_bits(TIMSK1_REG, &timsk1, REG_SIZE_8);
+    if (ret != WRITE_OK)
+    {
+        printf("ERROR(%d): Failed to write TIMSK1Bits to TIMSK1_REG", ret);
+    }
 }
