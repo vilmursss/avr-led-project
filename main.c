@@ -1,4 +1,6 @@
+#include <clock/system_clock.h>
 #include <log/logger.h>
+#include <serial/stdout_redirect.h>
 
 #include <util/delay.h>
 
@@ -9,6 +11,12 @@
 
 int main(void)
 {
+    // Init and start uptime counter
+    system_clock_init();
+
+    // Init stdout redirection to serial
+    stdout_redirect_init(SERIAL_BAUD);
+
     while (1)
     {
         // Send debug message using printf
