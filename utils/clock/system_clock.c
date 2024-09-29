@@ -11,8 +11,8 @@
 #endif
 
 // Constants
-const uint8_t DESIRED_FREQUENCY = 1; // 1 Hz
-const uint32_t PRESCALER = 1024;
+static const uint8_t DESIRED_FREQUENCY = 1; // 1 Hz
+static const uint32_t PRESCALER = 1024;
 
 // Registers
 volatile uint8_t* const TIMSK1_REG = (volatile uint8_t*)0x6F; // Interrupt Flag Register

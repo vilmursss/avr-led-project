@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 // Constants
-const char* TS_FORMAT = "%u days, %02u:%02u:%02u";
+static const char* TS_FORMAT = "%u days, %02u:%02u:%02u";
 
 // Local functions
 static const char* current_timestamp();
