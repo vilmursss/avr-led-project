@@ -1,6 +1,7 @@
 #include "stdout_redirect.h"
 #include "stdout_redirect_defs.h"
 
+#include <container/vector.h>
 #include <log/logger.h>
 #include <writer/reg_writer.h>
 
@@ -15,8 +16,7 @@
 // Local functions
 static bool stdout_redirect_data_register_empty();
 static void stdout_redirect_send_char(const char c);
-static void stdout_redirect_transmit_data(const char* str);
-static void stdout_redirect_send_msg();
+static void stdout_redirect_transmit_data();
 static void stdout_redirect_setup_output_file();
 static int stdout_redirect_putchar(char c, FILE* stream);
 static int stdout_redirect_set_baud_rate_regs(uint32_t baud);
@@ -38,10 +38,8 @@ volatile uint8_t* const UCSR0C_REG = (volatile uint8_t*)0xC2; // USART Control a
 volatile uint8_t* const UCSR0B_REG = (volatile uint8_t*)0xC1; // USART Control and Status Register B
 volatile uint8_t* const UCSR0A_REG = (volatile uint8_t*)0xC0; // USART Control and Status Register A
 
-// Buffer for storing characters before sending
-#define BUFFER_SIZE 120
-static char buffer[BUFFER_SIZE];
-static int buffer_index = 0;
+// Locals
+static Vector data_buffer;
 
 void stdout_redirect_init(const uint32_t baud)
 {
@@ -62,6 +60,9 @@ void stdout_redirect_init(const uint32_t baud)
         log_error("Failed to set frame format");
         return;
     }
+
+    // Initialize data buffer
+    vector_init(&data_buffer, sizeof(char));
 
     // Setup stdout to serial output
     stdout_redirect_setup_output_file();
@@ -86,28 +87,16 @@ static void stdout_redirect_send_char(const char c)
     *(volatile uint8_t*)UDR0_REG = c;
 }
 
-static void stdout_redirect_transmit_data(const char* str)
+static void stdout_redirect_transmit_data()
 {
-    while (*str)
+    while (VECTOR_SIZE(data_buffer) > 0)
     {
-        stdout_redirect_send_char(*str++);
+        char* value = VECTOR_POP_FRONT(data_buffer, char);
+        if (value != NULL)
+        {
+            stdout_redirect_send_char(*value);
+        }
     }
-}
-
-static void stdout_redirect_send_msg()
-{
-    // Append endline
-    buffer[buffer_index] = '\0';
-
-    // Transmit message to serial
-    stdout_redirect_transmit_data(buffer);
-
-    // Send carriage return for cross-platform support
-    stdout_redirect_transmit_data("\r");
-    
-    // Clear the buffer
-    memset(buffer, 0, sizeof(buffer));
-    buffer_index = 0;
 }
 
 static void stdout_redirect_setup_output_file()
@@ -118,18 +107,58 @@ static void stdout_redirect_setup_output_file()
 
 static int stdout_redirect_putchar(char c, FILE* stream)
 {
+    int funcRet = 0;
+    uint64_t vec_size = VECTOR_SIZE(data_buffer);
+
     // Store character in buffer
-    if (buffer_index < BUFFER_SIZE - 1)
+    // Leave room for possible new line and carriage return
+    if (vec_size < MAX_VEC_ELEMENT_SIZE - 2)
     {
-        buffer[buffer_index++] = c;
+        const VecStatus ret = VECTOR_PUSH_BACK(data_buffer, c);
+        if (ret != VEC_OK)
+        {
+            log_error("Failed to write '%c' to data buffer. (Error Code: %d)", c, ret);
+            funcRet = -1;
+        }
+        else
+        {
+            vec_size++;
+        }
     }
 
-    if (buffer_index == BUFFER_SIZE - 1 || c == '\n')
+    char newline = '\n';
+    if (vec_size == MAX_VEC_ELEMENT_SIZE - 2 && c != newline)
     {
-        stdout_redirect_send_msg();
+        const VecStatus ret = VECTOR_PUSH_BACK(data_buffer, newline);
+        if (ret != VEC_OK)
+        {
+            VECTOR_CLEAR(data_buffer);
+            log_warning("Failed to push newline to data buffer. (Error Code: %d)", ret);
+            funcRet = -1;
+        }
     }
 
-    return 0;
+    if (VECTOR_GET(data_buffer, char, (vec_size - 1)) == newline)
+    {
+        char carriage = '\r';
+        const VecStatus ret = VECTOR_PUSH_BACK(data_buffer, carriage);
+        if (ret != VEC_OK)
+        {
+            VECTOR_CLEAR(data_buffer);
+            log_warning("Failed to push carrage return to data buffer. (Error Code: %d)", ret);
+            funcRet = -1;
+        }
+        else
+        {
+            // Transmit message to serial
+            stdout_redirect_transmit_data();
+
+            // Clear vector after data has been transmitted just in case
+            VECTOR_CLEAR(data_buffer);
+        }
+    }
+
+    return funcRet;
 }
 
 static int stdout_redirect_set_baud_rate_regs(const uint32_t baud)
@@ -138,7 +167,7 @@ static int stdout_redirect_set_baud_rate_regs(const uint32_t baud)
 
     if (ubrr > 0xFFF)
     {
-        log_warning(" UBRR value (%d) is out of range.\n", ubrr);
+        log_warning("UBRR value (%d) is out of range.\n", ubrr);
         return -1;
     }
 

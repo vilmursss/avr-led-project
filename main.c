@@ -19,7 +19,6 @@ int main(void)
 
     while (1)
     {
-        // Send debug message using printf
         log_debug("Test print\n");
         _delay_ms(1000);
     }
