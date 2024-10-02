@@ -1,8 +1,7 @@
 #include <clock/system_clock.h>
+#include <clock/timer.h>
 #include <log/logger.h>
 #include <serial/stdout_redirect.h>
-
-#include <util/delay.h>
 
 // Check if serial debug baud rate is given through the CFLAGS
 #ifndef SERIAL_BAUD
@@ -20,7 +19,7 @@ int main(void)
     while (1)
     {
         log_debug("Test print\n");
-        _delay_ms(1000);
+        timer_delay_ms(1000);
     }
 
     return 0;

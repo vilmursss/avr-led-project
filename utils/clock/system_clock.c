@@ -1,5 +1,5 @@
 #include "system_clock.h"
-#include "system_clock_defs.h"
+#include "common_clock_defs.h"
 
 #include <log/logger.h>
 #include <status/reg_status.h>
@@ -15,7 +15,7 @@ static const uint8_t DESIRED_FREQUENCY = 1; // 1 Hz
 static const uint32_t PRESCALER = 1024;
 
 // Registers
-volatile uint8_t* const TIMSK1_REG = (volatile uint8_t*)0x6F; // Interrupt Flag Register
+volatile uint8_t* const TIMSK1_REG = (volatile uint8_t*)0x6F; // Interrupt Flag Register - Defined in system_clock.h
 volatile uint8_t* const TCCR1B_REG = (volatile uint8_t*)0x81; // Timer/Counter1 Control Register B
 volatile uint16_t* const ORC1A_REG = (volatile uint16_t*)0x88; //  Timer/Counter1 - Combinced output compare register A for low & high byte
 

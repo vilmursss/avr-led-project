@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+// Common registers
+extern volatile uint8_t* const TIMSK1_REG;
+
 typedef struct {
     uint8_t clockSelect : 3;               // Bits 0-2: Clock Select
     uint8_t waveformGenMode : 2;           // Bits 3-4: Waveform Generation Mode
