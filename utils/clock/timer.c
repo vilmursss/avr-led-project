@@ -33,7 +33,7 @@ void __vector_12(void)
 void timer_delay_ms(uint16_t delay_ms)
 {
     // Calculate the number of timer ticks needed for the delay
-    const uint16_t ticks = F_CPU / (PRESCALER * (1000 / delay_ms))- 1;
+    const uint16_t ticks = F_CPU / (PRESCALER * (1000 / delay_ms)) - 1;
     set_ocr1b_compare_value(ticks);
 
     // Enable the output compare match B interrupt
@@ -44,6 +44,9 @@ void timer_delay_ms(uint16_t delay_ms)
 
     // Disable the output compare match B interrupt
     set_compare_b_match_interrupt(false);
+
+    // Reset the delay flag
+    delay_flag = 0;
 }
 
 static void set_ocr1b_compare_value(uint16_t ticks)
@@ -51,12 +54,12 @@ static void set_ocr1b_compare_value(uint16_t ticks)
     // Disable interrupts to ensure atomic access if enabled as we are performing
     // two writes to 16-bit register
     uint8_t sreg = reg_status_get();
-   reg_status_disable_interrupts();
+    reg_status_disable_interrupts();
 
     const WriteStatus ret = reg_write_bits(OCR1B_REG, &ticks, REG_SIZE_16);
     if (ret != WRITE_OK)
     {
-        log_warning("Failed to write CompareMatchVAl to OCR1B_REG (Error Code: %d)", ret);
+        log_warning("Failed to write CompareMatchVal to OCR1B_REG (Error Code: %d)", ret);
     }
 
     // Restore status register

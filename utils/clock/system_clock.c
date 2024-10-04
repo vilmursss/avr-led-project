@@ -83,7 +83,7 @@ static void set_ocr1a_compare_value()
     // Disable interrupts to ensure atomic access if enabled as we are performing
     // two writes to 16-bit register
     uint8_t sreg = reg_status_get();
-   reg_status_disable_interrupts();
+    reg_status_disable_interrupts();
 
     const WriteStatus ret = reg_write_bits(ORC1A_REG, &compareMatchVal, REG_SIZE_16);
     if (ret != WRITE_OK)
