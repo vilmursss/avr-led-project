@@ -13,68 +13,103 @@
 #endif
 
 // Registers
-volatile uint16_t* const OCR1B_REG = (volatile uint16_t*)0x8A; // Timer/Counter1 - Combined output compare register B for low & high byte
+volatile uint8_t* const TCCR0A_REG = (volatile uint8_t*)0x44; // Timer/Counter0 - Control Register A
+volatile uint8_t* const TCCR0B_REG = (volatile uint8_t*)0x45; // Timer/Counter1 - Control Register B
+volatile uint8_t* const TCNT0_REG = (volatile uint8_t*)0x46;  // Timer/Counter0 - Counter Register
+volatile uint8_t* const OCR0A_REG = (volatile uint8_t*)0x47;  // Timer/Counter0 - Output Compare Register A
+volatile uint8_t* const TIMSK0_REG = (volatile uint8_t*)0x6E; // Timer/Counter0 - Interrupt Flag Register
 
 // Local functions
-static void set_ocr1b_compare_value(uint16_t ticks);
-static void set_compare_b_match_interrupt(bool enable);
+static void configure_control_registers();
+static void set_1_ms_compare_value();
+static void set_compare_a_match_interrupt(bool enable);
 
 // Local variables
-static volatile uint8_t delay_flag = 0;
-static const uint32_t PRESCALER = 1024;
+volatile uint16_t interruptTicks = 0;
+volatile uint16_t targetTicks = 0;
+static const uint32_t TIMER_PRESCALER = 1024;
 
-// ISR for Timer/Counter1 Compare Match B (Vector 12)
-void __vector_12(void) __attribute__ ((signal, used, externally_visible));
-void __vector_12(void)
+// ISR for Timer/Counter0 compare match A (Vector 14)
+void __vector_14(void) __attribute__ ((signal, used, externally_visible));
+void __vector_14(void)
 {
-    delay_flag = 1;
+    interruptTicks++;
 }
 
 void timer_delay_ms(uint16_t delay_ms)
 {
-    // Calculate the number of timer ticks needed for the delay
-    const uint16_t ticks = F_CPU / (PRESCALER * (1000 / delay_ms)) - 1;
-    set_ocr1b_compare_value(ticks);
+    // Reset counter register
+    *TCNT0_REG = 0;
 
-    // Enable the output compare match B interrupt
-    set_compare_b_match_interrupt(true);
+    // Setup registers and interrupts
+    configure_control_registers();
+    set_1_ms_compare_value();
 
-    // Wait for the delay flag to be set
-    while (!delay_flag);
+    // Set target ticks for desired delay
+    targetTicks = delay_ms;
+    interruptTicks = 0;
 
-    // Disable the output compare match B interrupt
-    set_compare_b_match_interrupt(false);
+    // Enable the output compare match A interrupt
+    set_compare_a_match_interrupt(true);
 
-    // Reset the delay flag
-    delay_flag = 0;
+    // Wait until interrupt ticks reaches the target
+    while (interruptTicks < targetTicks);
+
+    // Disable the output compare match A interrupt
+    set_compare_a_match_interrupt(false);
+
+    // Reset local variables
+    interruptTicks = 0;
+    targetTicks = 0;
 }
 
-static void set_ocr1b_compare_value(uint16_t ticks)
+static void configure_control_registers()
 {
-    // Disable interrupts to ensure atomic access if enabled as we are performing
-    // two writes to 16-bit register
-    uint8_t sreg = reg_status_get();
-    reg_status_disable_interrupts();
+    // Select desired clock for this PRESCALER
+    TCCR0BBits tccr0bBits = {0};
+    tccr0bBits.clockSelect = 0x5;
 
-    const WriteStatus ret = reg_write_bits(OCR1B_REG, &ticks, REG_SIZE_16);
+    // Set CTC mode
+    tccr0bBits.waveformGenMode = 0x1;
+
+    WriteStatus ret = reg_write_bits(TCCR0B_REG, &tccr0bBits, REG_SIZE_8);
     if (ret != WRITE_OK)
     {
-        log_warning("Failed to write CompareMatchVal to OCR1B_REG (Error Code: %d)", ret);
+        log_warning("Failed to write TCCR0BBits (Set clock select) to TCCR0B_REG (Error Code: %d)\n", ret);
     }
 
-    // Restore status register
-    reg_status_set(sreg);
-}
+    TCCR0ABits tccr0aBits = {0};
 
-static void set_compare_b_match_interrupt(const bool enable)
-{
-    // Enable compare match B
-    TIMSK1Bits timsk1 = {0};
-    timsk1.compareBMatchEnable = enable;
+    // Set CTC mode
+    tccr0aBits.waveformGenMode = 0x2;
 
-    const WriteStatus ret = reg_write_bits(TIMSK1_REG, &timsk1, REG_SIZE_8);
+    ret = reg_write_bits(TCCR0A_REG, &tccr0aBits, REG_SIZE_8);
     if (ret != WRITE_OK)
     {
-        log_warning("Failed to write TIMSK1Bits to TIMSK1_REG (Error Code: %d)", ret);
+        log_warning("Failed to write TCCR0ABits (Set clock select) to TCCR0A_REG (Error Code: %d)\n", ret);
+    }
+}
+
+static void set_1_ms_compare_value()
+{
+    // Calculate the number of timer ticks needed for 1 ms
+    uint8_t compare_value = (F_CPU / (TIMER_PRESCALER * 1000)) - 1;
+
+    WriteStatus ret = reg_write_bits(OCR0A_REG, &compare_value, REG_SIZE_8);
+    if (ret != WRITE_OK)
+    {
+        log_warning("Failed to write CompareMatchVal to OCR1BH_REG (Error Code: %d)\n", ret);
+    }
+}
+
+static void set_compare_a_match_interrupt(const bool enable)
+{
+    TIMSK0Bits timsk0 = {0};
+    timsk0.compareAMatchEnable = enable;
+
+    const WriteStatus ret = reg_write_bits(TIMSK0_REG, &timsk0, REG_SIZE_8);
+    if (ret != WRITE_OK)
+    {
+        log_warning("Failed to write TIMSK0Bits to TIMSK0_REG (Error Code: %d)\n", ret);
     }
 }
