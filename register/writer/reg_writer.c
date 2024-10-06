@@ -38,3 +38,28 @@ WriteStatus reg_write_bits(
 
     return ret;
 }
+
+WriteStatus reg_clear_and_write_bits(
+    volatile void* registerAddress, void* newBits, const RegisterSize size)
+{
+    // Clear all bits before setting them
+    switch (size)
+    {
+        case REG_SIZE_8:
+            *(volatile uint8_t*)registerAddress = 0;
+            break;
+        case REG_SIZE_16:
+            *(volatile uint16_t*)registerAddress = 0;
+            break;
+        case REG_SIZE_32:
+            *(volatile uint32_t*)registerAddress = 0;
+            break;
+        case REG_SIZE_64:
+            *(volatile uint64_t*)registerAddress = 0;
+            break;
+        default:
+            return WRITE_UNKNOWN_REG_SIZE;
+    }
+
+    return reg_write_bits(registerAddress, newBits, size);
+}
