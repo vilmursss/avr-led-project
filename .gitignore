@@ -1,0 +1,8 @@
+# Ignore Visual Studio Code settings directory
+.vscode/
+
+# Ignore build directory
+build/
+
+# Ignore helper scripts
+cat_lines.sh
