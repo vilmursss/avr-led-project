@@ -4,12 +4,14 @@ BUILD_DIR := $(SRC_DIR)/build
 INC_DIRS := $(SRC_DIR) \
 			$(SRC_DIR)/utils \
 			$(SRC_DIR)/register \
+			$(SRC_DIR)/led
 
 # Source and Object Files
 SRC_FILES := $(wildcard $(SRC_DIR)/*.c) \
 	$(wildcard $(SRC_DIR)/utils/**/*.c) \
 	$(wildcard $(SRC_DIR)/register/**/*.c) \
-	$(wildcard $(SRC_DIR)/serial/*.c)
+	$(wildcard $(SRC_DIR)/serial/*.c) \
+	$(wildcard $(SRC_DIR)/led/*.c)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRC_FILES))
 
 # Compiler and Flags
