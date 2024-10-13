@@ -20,5 +20,7 @@ int main(void)
     rgb_setup();
     rgb_test_all_colors();
 
+    log_debug("That is all. Led show is over!");
+
     return 0;
 }
